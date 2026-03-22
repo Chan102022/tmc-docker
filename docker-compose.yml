@@ -1,0 +1,72 @@
+services:
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: tmc1_php_8_3
+    # Update 1: Point directly to the backend folder!
+    working_dir: /usr/share/nginx/html/TMC_WEB_BASED_CLEARANCE
+    volumes:
+      - ./TMC_WEB_BASED_CLEARANCE:/usr/share/nginx/html/TMC_WEB_BASED_CLEARANCE
+      - ./php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+      - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    depends_on:
+      - mysql
+    networks:
+      - laravel_network
+    
+  nginx:
+    image: nginx:alpine
+    container_name: tmc1_nginx
+    ports:
+      - "8094:80"
+    volumes:
+      - ./TMC_WEB_BASED_CLEARANCE:/usr/share/nginx/html/TMC_WEB_BASED_CLEARANCE
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - php
+    networks:
+      - laravel_network
+    
+  mysql:
+    image: mysql:8.0
+    container_name: tmc1_mysql
+    restart: unless-stopped
+    ports:
+      - "33071:3306"
+    environment:
+      # Update 2: Renamed the database
+      MYSQL_DATABASE: tmc_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel_user
+      MYSQL_PASSWORD: secret
+    volumes:
+      # Update 3: Renamed the volume to avoid clashing
+      - tmc_mysql_data:/var/lib/mysql
+    networks:
+      - laravel_network
+    
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: tmc1_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8095:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+      UPLOAD_LIMIT: 200M
+    depends_on:
+      - mysql
+    networks:
+      - laravel_network
+    
+volumes:
+  # Update 3: Renamed the volume
+  tmc_mysql_data:
+    
+networks:
+  laravel_network:
+    driver: bridge
