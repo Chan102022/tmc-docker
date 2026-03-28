@@ -6,6 +6,8 @@ services:
     container_name: tmc1_php_8_3
     # Update 1: Point directly to the backend folder!
     working_dir: /usr/share/nginx/html/TMC_WEB_BASED_CLEARANCE
+    ports:
+      - "8080:8080"
     volumes:
       - ./TMC_WEB_BASED_CLEARANCE:/usr/share/nginx/html/TMC_WEB_BASED_CLEARANCE
       - ./php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
